@@ -8,12 +8,27 @@ Author: Jan Milík <milikjan@fit.cvut.cz>
 
 import urlparse
 import httplib
+import datetime
+import re
 
 
 __version__ = "0.1"
 
 
+def normalize_time(value, including = False):
+    if isinstance(value, int):
+        return datetime.fromtimestamp(value)
+    elif isinstance(value, datetime.date):
+        if including:
+            return datetime.datetime(value.year, value.month, value.day, 24, 0, 0)
+        else:
+            return datetime.datetime(value.year, value.month, value.day, 0, 0, 0)
+    return value
+
+
 class HTTPConnector(object):
+    YEAR_RE = re.compile(r"href\s*=\s*\"\s*(([0-9]+)\s*(\/)?)\s*\"")
+    
     def __init__(self, base_url, station_name = "<none>"):
         self.base_url = base_url
         self.station_name = station_name
@@ -37,8 +52,30 @@ class HTTPConnector(object):
         response = self.connection.getresponse()
         return response.read()
     
+    def _get_years(self, type = "snapshots"):
+        url = urlparse.urljoin(self.base_url, type)
+        if not url.endswith("/"):
+            url += "/"
+        response = self.request(url)
+        
+        print url
+        print response
+        
+        for match in self.YEAR_RE.finditer(response):
+            yield (
+                urlparse.urljoin(url, match.group(1)),
+                int(match.group(2)),
+            )
+    
     def get_snapshots(self, from_date, to_date = None):
         pass
+
+
+class SnapshotEntry(object):
+    def __init__(self, connector, file_name, url):
+        self.connector = connector
+        self.file_name = file_name
+        self.url = url
 
 
 def main():

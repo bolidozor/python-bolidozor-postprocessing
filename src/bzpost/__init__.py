@@ -317,7 +317,7 @@ class HTTPConnector(object):
         
         value_fn = lambda m, u: SnapshotEntry(
             self,
-            m.group(0),
+            m.group(1),
             datetime.datetime(
                 int(m.group(2)),
                 int(m.group(3)),
@@ -353,6 +353,17 @@ class HTTPConnector(object):
     def get_snapshots(self, from_date, to_date = None):
         if to_date is None:
             to_date = datetime.datetime.now()
+        
+        from_date = normalize_time(from_date)
+        to_date   = normalize_time(to_date)
+        
+        if from_date >= to_date:
+            raise ValueError(
+                "Starting date (%s) is equal or after the final date (%s)." % (
+                    from_date.isoformat(),
+                    to_date.isoformat(),
+                )
+            )
         
         for hour in self._iter_hours(from_date, to_date):
             try:

@@ -17,6 +17,15 @@ __version__ = "0.1"
 
 
 def normalize_time(value, including = False):
+    """Normalizes several different time representations to :class:`datetime.datetime` type.
+
+    The rules for the normalization are:
+
+    * :class:`int` instances are interpreted as unix timestamps,
+    * :class:`datetime.datetime` instances are returned as they are,
+    * :class:`datetime.date` instances are converted to `datetime.datetime` values with the same year, month and day and time `0:00:00`,
+    * anything else is returned as-is.
+    """
     if isinstance(value, int):
         return datetime.fromtimestamp(value)
     elif isinstance(value, datetime.datetime):
@@ -30,6 +39,15 @@ def normalize_time(value, including = False):
 
 
 def normalize_date(value):
+    """Normalizes several different date representations to :class:`datetime.date` type.
+
+    The rules for the normalization are:
+
+    * :class:`int` instances are interpreted as unix timestamps, only the date part of the time is returned,
+    * :class:`datetime.datetime` are converted to :class:`datetime.date` using the :meth:`datetime.datetime.date()` method,
+    * :class:`datetime.date` values are returned as they are,
+    * any other type of the argument `value` causes :class:`TypeError` exception.
+    """
     if isinstance(value, int):
         return datetime.datetime.fromtimestamp(value).date()
     elif isinstance(value, datetime.datetime):
@@ -60,6 +78,19 @@ class ConnectorException(Exception):
 
 
 class HTTPConnector(object):
+    """This class can read a single station's data in a HTTP data repository.
+
+    Example:
+    
+    >>> import datetime
+    >>> connector = bzpost.HTTPConnector('http://space.astro.cz/bolidozor/svakov/SVAKOV-R1/')
+    >>> connector.coonect()
+    >>> for snapshot in connector.get_snapshots(datetime.datetime(2015, 1, 4), datetime.datetime(2015, 2, 7)):
+    ...     print "URL: ", snapshot.url
+    ...     print
+    >>> connector.disconnect()
+    """
+    
     YEAR_RE = re.compile(r"href\s*=\s*\"\s*(([0-9]+)\s*(\/)?)\s*\"")
 
     SNAPSHOT_RE = re.compile(
@@ -84,9 +115,21 @@ class HTTPConnector(object):
         self.missing_years = set()
     
     def connect(self):
+        """Open connection to the server represented by the url
+        passed to the constructor of :class:`HTTPConnector`.
+        The connection openend is a keep-alive HTTP connection,
+        so this method needs to be called only once per session.
+        
+        This method must be called before any other methods
+        are called.
+        """
         self.connection = httplib.HTTPConnection(self.parsed_url.netloc)
 
     def close(self):
+        """Closes the HTTP connection if it has been previously opened.
+        If the connection hasn't been opened, or has been already closed,
+        this method does nothing.
+        """
         if self.connection is not None:
             self.connection.close()
             self.connection = None
@@ -351,6 +394,16 @@ class HTTPConnector(object):
             current += d
     
     def get_snapshots(self, from_date, to_date = None):
+        """Returns iterator of all snapshots present in the repository
+        between the dates specified by `from_date` and `to_date`.
+
+        The individual snapshots are represented by :class:`SnapshotEntry` instances.
+        
+        :param datetime.datetime from_date: start of the time interval
+        :param datetime.datetime to_date: end of the time interval
+        :return: iterator of snapshot entries
+        :rtype: iterator of :class:`SnapshotEntry` instances
+        """
         if to_date is None:
             to_date = datetime.datetime.now()
         
@@ -374,6 +427,26 @@ class HTTPConnector(object):
 
 
 class SnapshotEntry(object):
+    """Represents a file in a HTTP repository.
+
+    .. attribute:: connector
+        
+        HTTPConnector instance, which created this entry.
+
+    .. attribute:: file_name
+        
+        File name, without the URL path, of this file.
+
+    .. attribute:: url
+
+        Full URL of this file. Use this to request the file over HTTP. 
+
+    .. attribute:: time
+        
+        Time of this snapshot or meteor file.
+
+    """
+    
     def __init__(self, connector, file_name, time, url):
         self.connector = connector
         self.file_name = file_name

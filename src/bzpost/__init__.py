@@ -27,7 +27,7 @@ def normalize_time(value, including = False):
     * anything else is returned as-is.
     """
     if isinstance(value, int):
-        return datetime.fromtimestamp(value)
+        return datetime.datetime.fromtimestamp(value)
     elif isinstance(value, datetime.datetime):
         return value
     elif isinstance(value, datetime.date):

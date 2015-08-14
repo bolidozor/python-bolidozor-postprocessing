@@ -84,7 +84,7 @@ class HTTPConnector(object):
     
     >>> import datetime
     >>> connector = bzpost.HTTPConnector('http://space.astro.cz/bolidozor/svakov/SVAKOV-R1/')
-    >>> connector.coonect()
+    >>> connector.connect()
     >>> for snapshot in connector.get_snapshots(datetime.datetime(2015, 1, 4), datetime.datetime(2015, 2, 7)):
     ...     print "URL: ", snapshot.url
     ...     print

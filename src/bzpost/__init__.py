@@ -6,8 +6,8 @@ Author: Jan Milík <milikjan@fit.cvut.cz>
 """
 
 
-import urlparse
-import httplib
+from urllib.parse import urlparse
+import http.client as httplib
 import datetime
 from datetime import datetime as dt
 import re
@@ -466,7 +466,7 @@ class SnapshotEntry(object):
 
 
 def main():
-    print __doc__
+    print(__doc__)
 
 
 if __name__ == "__main__":

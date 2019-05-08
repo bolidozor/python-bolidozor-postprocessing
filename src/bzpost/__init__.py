@@ -6,11 +6,9 @@ Author: Jan Milík <milikjan@fit.cvut.cz>
 """
 
 
-# import urlparse as up #python2
-from urllib.parse import *#pyhton3
-# import httplib as httplib #python2
-import http.client as httplib #pyhton3
-import datetime #pyhton3
+from urllib.parse import urlparse
+import http.client as httplib
+import datetime
 from datetime import datetime as dt
 import re
 
@@ -103,7 +101,7 @@ class HTTPConnector(object):
         self.base_url = base_url
         self.station_name = station_name
         
-        self.parsed_url = urlparse(base_url)
+        self.parsed_url = urlparse.urlparse(base_url)
         
         self.connection = None
         
@@ -193,25 +191,25 @@ class HTTPConnector(object):
         self.existing_years.add((year, type))
     
     def _get_year_url(self, year, type = "snapshots"):
-        return urljoin(
+        return urlparse.urljoin(
             self.base_url,
             "%s/%4d/" % (type, year)
         )
     
     def _get_month_url(self, month, type = "snapshots"):
-        return urljoin(
+        return urlparse.urljoin(
             self._get_year_url(month.year, type),
             "%02d/" % (month.month, )
         )
 
     def _get_day_url(self, day, type = "snapshots"):
-        return urljoin(
+        return urlparse.urljoin(
             self._get_month_url(day, type),
             "%02d/" % (day.day, )
         )
 
     def _get_hour_url(self, hour, type = "snapshots"):
-        return urljoin(
+        return urlparse.urljoin(
             self._get_hour_url(hour, type),
             "%02d/" % (hour.hour, )
         )
@@ -254,7 +252,7 @@ class HTTPConnector(object):
                 return
     
     def _get_directory(self, url, pattern, url_group = 1, value_group = 2, value_fn = None):
-        response = str(self.request(url))
+        response = self.request(url)
         
         if value_group is None:
             if value_fn is None:
@@ -268,7 +266,7 @@ class HTTPConnector(object):
         
         for match in pattern.finditer(response):
             count += 1
-            match_url = urljoin(url, match.group(url_group))
+            match_url = urlparse.urljoin(url, match.group(url_group))
             if value_group is None:
                 yield (
                     match_url,
@@ -281,14 +279,14 @@ class HTTPConnector(object):
                 )
 
     def _get_years(self, type = "snapshots"):
-        url = urljoin(self.base_url, type)
+        url = urlparse.urljoin(self.base_url, type)
         if not url.endswith("/"):
             url += "/"
 
         return self._get_directory(url, self.YEAR_RE)
     
     def _get_months(self, year, type = "snapshots"):
-        url = urljoin(
+        url = urlparse.urljoin(
             self.base_url,
             "%s/%4d/" % (type, year, )
         )
@@ -302,7 +300,7 @@ class HTTPConnector(object):
     def _get_days(self, month, type = "snapshots"):
         month = normalize_date(month)
         
-        url = urljoin(
+        url = urlparse.urljoin(
             self.base_url,
             "%s/%04d/%02d/" % (type, month.year, month.month, )
         )
@@ -319,7 +317,7 @@ class HTTPConnector(object):
         if self._is_day_missing(day, type):
             return
         
-        url = urljoin(
+        url = urlparse.urljoin(
             self.base_url,
             "%s/%04d/%02d/%02d/" % (type, day.year, day.month, day.day, )
         )
@@ -350,7 +348,7 @@ class HTTPConnector(object):
         if self._is_day_missing(hour, "snapshots"):
             return
         
-        url = urljoin(
+        url = urlparse.urljoin(
             self.base_url,
             "snapshots/%04d/%02d/%02d/%02d/" % (
                 hour.year,
